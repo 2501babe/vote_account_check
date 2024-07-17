@@ -8,8 +8,10 @@ const TESTNET: &str = "https://api.testnet.solana.com";
 const DEVNET: &str = "https://api.devnet.solana.com";
 
 fn main() {
-    let rpc = RpcClient::new(TESTNET);
+    let network = MAINNET;
+    let rpc = RpcClient::new(network);
 
+    println!("checking {}", network);
     let vote_accounts = rpc.get_vote_accounts().unwrap();
     println!("found {} current and {} delinquent vote accounts", vote_accounts.current.len(), vote_accounts.delinquent.len());
 
@@ -31,8 +33,9 @@ fn main() {
             _ => panic!("bad vote account {}", pubkey),
         }
 
-        let theirs = VoteState::deserialize_with_bincode(&data);
-        let ours = VoteState::deserialize(&data);
+        let theirs = VoteState::deserialize(&data).unwrap();
+        let mut ours = VoteState::default();
+        VoteState::deserialize_into(&data, &mut ours).unwrap();
 
         assert_eq!(theirs, ours);
     }
